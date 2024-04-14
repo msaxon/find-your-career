@@ -17,6 +17,7 @@ import { Route as rootRoute } from './routes/__root'
 // Create Virtual Routes
 
 const IndexLazyImport = createFileRoute('/')()
+const JobsSalaryLevelsLazyImport = createFileRoute('/jobs/salary-levels')()
 const JobsEducationLevelsLazyImport = createFileRoute(
   '/jobs/education-levels',
 )()
@@ -27,6 +28,13 @@ const IndexLazyRoute = IndexLazyImport.update({
   path: '/',
   getParentRoute: () => rootRoute,
 } as any).lazy(() => import('./routes/index.lazy').then((d) => d.Route))
+
+const JobsSalaryLevelsLazyRoute = JobsSalaryLevelsLazyImport.update({
+  path: '/jobs/salary-levels',
+  getParentRoute: () => rootRoute,
+} as any).lazy(() =>
+  import('./routes/jobs/salary-levels.lazy').then((d) => d.Route),
+)
 
 const JobsEducationLevelsLazyRoute = JobsEducationLevelsLazyImport.update({
   path: '/jobs/education-levels',
@@ -47,6 +55,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JobsEducationLevelsLazyImport
       parentRoute: typeof rootRoute
     }
+    '/jobs/salary-levels': {
+      preLoaderRoute: typeof JobsSalaryLevelsLazyImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -55,6 +67,7 @@ declare module '@tanstack/react-router' {
 export const routeTree = rootRoute.addChildren([
   IndexLazyRoute,
   JobsEducationLevelsLazyRoute,
+  JobsSalaryLevelsLazyRoute,
 ])
 
 /* prettier-ignore-end */

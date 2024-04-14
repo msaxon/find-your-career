@@ -1,4 +1,4 @@
-import Papa, { ParseResult } from "papaparse";
+import { parse, ParseResult } from "papaparse";
 import { useSuspenseQuery } from "@tanstack/react-query";
 
 export interface JobEducationalLevel {
@@ -57,13 +57,15 @@ const transformArraysToObjects = (arr: string[][]): JobEducationalLevel[] => {
   }));
 };
 
-export const getJobNames = async (): Promise<JobEducationalLevel[]> => {
+
+export const getJobNames = (): Promise<JobEducationalLevel[]> => {
   return new Promise((resolve, reject) => {
-    Papa.parse<string[]>(file, {
+    parse<string[]>(file, {
       download: true,
       skipEmptyLines: true,
       complete(results: ParseResult<string[]>) {
-        return resolve(transformArraysToObjects(results.data));
+        const jobLevels: JobEducationalLevel[] = transformArraysToObjects(results.data);
+        return resolve(jobLevels);
       },
       error(error: Error) {
         console.log("error");

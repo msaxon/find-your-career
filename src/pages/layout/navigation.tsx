@@ -10,6 +10,10 @@ const routes = [
     title: "Education Level of Jobs",
     route: "/jobs/education-levels",
   },
+  {
+    title: "Salary Level of Jobs",
+    route: '/jobs/salary-levels',
+  }
 ];
 
 export const Navigation = () => {
