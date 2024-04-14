@@ -1,11 +1,11 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { parse, ParseResult } from "papaparse";
 
-export type SalaryValue = number | "*" | "**" | "#";
+export type SalaryValue = number | "Unavailable" | "**" | "#";
 
 export interface Salary {
-  level: string,
-  number: SalaryValue
+  level: string;
+  number: SalaryValue;
 }
 
 export interface JobSalary {
@@ -20,6 +20,23 @@ export interface JobSalary {
 
 const file = "/job-salary-national.csv";
 
+const mapIndexToPercentile = (i: number): string => {
+  switch (i) {
+    case 0:
+      return "10th percentile";
+    case 1:
+      return "25th percentile";
+    case 2:
+      return "50th percentile";
+    case 3:
+      return "75th percentile";
+    case 4:
+      return "90th percentile";
+    default:
+      return "0";
+  }
+};
+
 export const useJobsWithNationalSalary = () => {
   return useSuspenseQuery({
     queryKey: ["jobs-by-salary-national"],
@@ -29,14 +46,15 @@ export const useJobsWithNationalSalary = () => {
   });
 };
 
-const toSalary = (val: string): SalaryValue => {
+const toSalary = (val: string, isHourly: boolean): SalaryValue => {
   switch (val) {
     case "*":
     case "**":
+      return "Unavailable";
     case "#":
-      return val;
+      return isHourly ? 115 : 239000;
     default:
-      return parseFloat(val);
+      return parseFloat(val.replace(",", ""));
   }
 };
 
@@ -46,14 +64,14 @@ const transformArraysToObjects = (arr: string[][]): JobSalary[] => {
     matrixCode: row[8],
     totalEmployment: row[11],
     salary: {
-      hourly: row.slice(20, 24).map(r => ({ level: 'abc', value: toSalary(r)})),
-      annual: {
-        "10": toSalary(row[25]),
-        "25": toSalary(row[26]),
-        "50": toSalary(row[27]),
-        "75": toSalary(row[28]),
-        "90": toSalary(row[29]),
-      },
+      hourly: row.slice(20, 25).map((r, index) => ({
+        level: mapIndexToPercentile(index),
+        value: toSalary(r, true),
+      })),
+      annual: row.slice(25, 30).map((r, index) => ({
+        level: mapIndexToPercentile(index),
+        value: toSalary(r, false),
+      })),
     },
   }));
 };
